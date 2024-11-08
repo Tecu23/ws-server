@@ -18,8 +18,7 @@ type Server struct {
 
 // NewServer creates a server instance
 func NewServer() *Server {
-
-	var upgrader = websocket.Upgrader{
+	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true // Allow all connections for now
 		},
@@ -30,7 +29,6 @@ func NewServer() *Server {
 		clientsMutex: sync.Mutex{},
 		upgrader:     upgrader,
 	}
-
 }
 
 // SetupServer creates the routes and sets server up
@@ -40,7 +38,6 @@ func (s *Server) SetupServer() {
 
 func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := s.upgrader.Upgrade(w, r, nil)
-
 	if err != nil {
 		fmt.Println("Error upgrading connection: ", err)
 		return
@@ -53,7 +50,6 @@ func (s *Server) handleConnection(w http.ResponseWriter, r *http.Request) {
 	// Keep listening for messages
 	for {
 		messageType, message, err := conn.ReadMessage()
-
 		if err != nil {
 			fmt.Println("Connection closed:", err)
 			return

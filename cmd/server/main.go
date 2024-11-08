@@ -2,12 +2,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/Tecu23/ws-server/pkg/enginepb"
 	"github.com/Tecu23/ws-server/pkg/server"
 )
 
@@ -37,8 +42,43 @@ func main() {
 		config: cfg,
 		logger: logger,
 	}
+	log.Println(app)
 
-	app.serve()
+	// lets create a basic connection to the GRPC server
+	conn, err := grpc.Dial(
+		"localhost:8089",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	client := enginepb.NewChessEngineClient(conn)
+
+	bestMove, err := client.CalculateBestMove(
+		context.Background(),
+		&enginepb.MoveRequest{
+			Fen:  "r1bqkbnr/pppppppp/n7/8/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 1 3",
+			Type: "stockfish",
+		},
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println(bestMove)
+
+	bestMove, err = client.CalculateBestMove(
+		context.Background(),
+		&enginepb.MoveRequest{
+			Fen:  "r1bqkbnr/pppppppp/n7/8/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 1 3",
+			Type: "argo",
+		},
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println(bestMove)
+
+	// app.serve()
 }
 
 func (app *application) serve() error {
